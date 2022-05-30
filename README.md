@@ -1,1 +1,1 @@
-Contained in this repository are three demonstration cryptography programs which call functions in the GNU Nettle library.
+Contained in this repository are three encryption utilities which call functions in the GNU Nettle library.

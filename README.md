@@ -1,4 +1,4 @@
-This repository contains source code for ten programs which implement common crytography algorithms. These programs are based on methods in the Nettle library (https://www.lysator.liu.se/~nisse/nettle/).
+This repository contains source code for ten programs which implement common cryptography algorithms. These programs are based on methods in the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/).
 
 The ten algorithms are:
 

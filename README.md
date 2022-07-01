@@ -1,5 +1,5 @@
 This repository contains source code for ten programs which implement common cryptography algorithms. These programs are based on methods in the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/). You will need to install that library to compile these programs. I recommend the following compiler flags:  
-$ make sha.cc -std=c++11LIBS -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
+$ make sha.cc -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
 
 The ten algorithms are:
 

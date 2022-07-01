@@ -22,13 +22,13 @@ RSA
 DSA  
 
 To execute the hashing functions, compile the program and use standard input:  
-$ make sha-512 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
+$ make sha-512 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp  
 $ ./sha3-512 < plaintext.txt  
 
 To execute the symmetric key algorithms, compile the program and use standard input:  
-$ make aes-256 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
+$ make aes-256 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp  
 $ ./aes-256 < plaintext.txt  
 
 The public key algorithms don't encrypt; they just demonstrate key generation. To execute them and output the keys, compile and run:  
-$ make rsa-4096 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
+$ make rsa-4096 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp  
 $ ./rsa-4096  

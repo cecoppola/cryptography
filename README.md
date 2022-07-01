@@ -4,7 +4,7 @@ The ten algorithms are:
 
 Hash:  
 MD5  
-SHA1 
+SHA1  
 SHA2-256  
 SHA3-512  
 

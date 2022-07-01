@@ -18,11 +18,11 @@ Public Key:
 RSA  
 DSA  
 
-To execute the hashing functions, compile the program and use standard input:
+To execute the hashing functions, compile the program and use standard input:  
 ./sha3-512 < plaintext.txt
 
-To execute the symmetric key algorithms, compile the program and use standard input:
+To execute the symmetric key algorithms, compile the program and use standard input:  
 ./aes-256 < plaintext.txt
 
-The public key algorithms don't encrypt; the just demonstrate key generation. To execute them and output the keys, compile and run:
+The public key algorithms don't encrypt; they just demonstrate key generation. To execute them and output the keys, compile and run:  
 ./rsa-4096

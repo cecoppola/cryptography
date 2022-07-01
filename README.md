@@ -20,10 +20,10 @@ The ten algorithms are:
 - DSA  
 
 To execute the hashing functions, compile the program and use standard input:  
-> $ ./sha3-512 < plaintext.txt  
+> $ ./sha3-512 < message.txt  
 
 To execute the symmetric key algorithms, compile the program and use standard input:   
-> $ ./aes-256 < plaintext.txt  
+> $ ./aes-256 < message.txt  
 
 The public key algorithms don't encrypt; they just demonstrate key generation. To execute them and output the keys, compile and run:   
 > $ ./rsa-4096  

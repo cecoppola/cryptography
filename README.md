@@ -3,20 +3,20 @@ This repository contains source code for ten programs which implement common cry
 The ten algorithms are:
 
 **Hashing**  
--MD5  
--SHA1  
--SHA2-256  
--SHA3-512  
+- MD5  
+- SHA1  
+- SHA2-256  
+- SHA3-512  
 
 **Symmetric Key**
--RC4  
--DES  
--AES  
--Salsa20  
+- RC4  
+- DES  
+- AES  
+- Salsa20  
 
 **Public Key**
--RSA  
--DSA  
+- RSA  
+- DSA  
 
 To execute the hashing functions, compile the program and use standard input:  
 $ make sha-512 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp  

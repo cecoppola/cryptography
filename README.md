@@ -2,6 +2,7 @@ This repository contains source code for ten programs which implement common cry
 $ make sha.cc -std=c++11LIBS	:= -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp
 
 The ten algorithms are:
+
 Hashing  
 -------  
 MD5  

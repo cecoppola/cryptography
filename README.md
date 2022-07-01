@@ -19,13 +19,13 @@ RSA
 DSA  
 
 To execute the hashing functions, compile the program and use standard input:  
-$ make sha-512
-$ ./sha3-512 < plaintext.txt
+$ make sha-512  
+$ ./sha3-512 < plaintext.txt  
 
 To execute the symmetric key algorithms, compile the program and use standard input:  
-$ make sha-512
-$ ./aes-256 < plaintext.txt
+$ make sha-512  
+$ ./aes-256 < plaintext.txt  
 
 The public key algorithms don't encrypt; they just demonstrate key generation. To execute them and output the keys, compile and run:  
-$ make rsa-4096
-$ ./rsa-4096
+$ make rsa-4096  
+$ ./rsa-4096  

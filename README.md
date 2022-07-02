@@ -1,4 +1,4 @@
-This repository contains source code for ten programs which implement common cryptography algorithms. These programs are based on methods in the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/). You will need to install that library to compile these programs. Here are suggested flags:
+This repository contains source code and precompiled binaries for ten programs which implement common cryptography algorithms. These programs are based on methods in the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/). You will need to install that library to compile these programs. Here are suggested flags:
 > $ make aes-256 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp 
 
 The ten algorithms are:

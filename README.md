@@ -1,7 +1,7 @@
-This repository contains source code and precompiled binaries for ten programs which implement common cryptography algorithms. These programs are based on methods in the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/). You will need to install that library to compile these programs. Here are suggested flags:
+This repository contains source code and precompiled binaries for utilities which implement common cryptography algorithms. These programs are built using functions from the open source Nettle library (https://www.lysator.liu.se/~nisse/nettle/). Here are suggested compilation flags:
 > $ make aes-256 -lgsl -lgslcblas -lm -lnettle -lhogweed -lgmp 
 
-The ten algorithms are:
+The algorithms are:
 
 **Hashing**  
 - MD5  
@@ -18,6 +18,7 @@ The ten algorithms are:
 **Public Key**
 - RSA  
 - DSA  
+- EcDSA
 
 To execute the hashing functions, compile the program and use standard input:  
 > $ ./sha3-512 < message.txt  

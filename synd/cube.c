@@ -24,13 +24,16 @@ uint64_t* iidmap(gsl_rng *qrng, double p_zero, uint64_t k, uint64_t numdata) {
 }
 
 int main(int argc, char **argv) {
+
   uint8_t distance = atoi(argv[1]);
   double p_zero    = atof(argv[2]);
   double rho_odd   = atof(argv[3]);
   double rho_even  = atof(argv[4]);
-  double blocks    = atoi(argv[5]);
+  uint16_t blocks  = atoi(argv[5]);
   uint64_t width = 2*distance - 1;
   uint64_t area = width*width;
+  uint64_t numdata = (area+1)/2;
+
   time_t t;
   int pid_t = getpid();
   uint32_t rsalt = rand();
@@ -39,7 +42,6 @@ int main(int argc, char **argv) {
   gsl_rng *qrng;
   qrng = gsl_rng_alloc(gsl_rng_taus2);
   gsl_rng_set(qrng, rand());
-  uint64_t numdata = (area+1)/2;
 
   char** qarray = calloc(width, sizeof(char*));
   for(int i = 0; i < width; i++) qarray[i] = calloc(width, sizeof(char));
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
     //Loop over layers
     for(int t = 0; t < distance; t++) {
   
-      //Reset arrays
+      //Reset interactions
       for(int i = 0; i < width; i++) { 
         for(int j = 0; j < width; j++) { 
           gamma[i][j] = 0.0;
@@ -72,6 +74,7 @@ int main(int argc, char **argv) {
         ycoord = mod.rem;
         qarray[xcoord][ycoord] ^= trigen(qrng);
       }
+      free(errors);
 
       //Compute the correlation matrix
       char gval = 0;
@@ -168,9 +171,10 @@ int main(int argc, char **argv) {
 
   }
 
+  for(int i = 0; i < width; i++) free(gamma[i]);
+  free(gamma);
   for(int i = 0; i < width; i++) free(qarray[i]);
-  free(qarray);
-  fclose(Synfile);
+  free(qarray);  fclose(Synfile);
   gsl_rng_free(qrng);
   return 0;
 }

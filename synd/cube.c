@@ -1,3 +1,4 @@
+// ./cube 22 .0013 .30 .15 10
 //#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>

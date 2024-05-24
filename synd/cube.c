@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
       }
 
       //Print syndrome
-      printf("\nSyndrome at t=%2i:\n", t+1);
+      printf("\nSyndrome at (%3i,%3i):\n", n+1, t+1);
       uint64_t p = 0;
       for(uint64_t x = 0; x < width; x++) {
         for(uint64_t y = 0; y < width; y++) {

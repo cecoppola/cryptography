@@ -1,10 +1,11 @@
-// ./cube 22 .0013 .30 .15 10
-//#define _GNU_SOURCE
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#include <linux/random.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <inttypes.h>
@@ -43,6 +44,21 @@ uint64_t* iidmap(gsl_rng *qrng, uint64_t k, uint64_t numdata) {
   return derrors;
 }
 
+unsigned long fourseed() {
+  time_t t;
+  int pid_t = getpid();
+  unsigned long rseed1 = pid_t * time(&t);
+  srand(rseed1);
+  unsigned char buf[4];
+  int rv = syscall(SYS_getrandom, buf, sizeof(buf), 0);
+  uint32_t bufint = 0;
+  for (int i = 0; i < sizeof(buf); i++) bufint = (bufint << 8) | buf[i];
+  uint32_t rsalt = rand();
+  unsigned long rseed2 = pid_t*time(&t)*rsalt*bufint;
+  printf("seed = % *li\n", 20, rseed2);
+  return rseed2;
+}
+
 int main(int argc, char **argv) {
   
   uint64_t distance = atoi(argv[1]);
@@ -73,11 +89,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  time_t t;
-  int pid_t = getpid();
-  uint32_t rsalt = rand();
-  unsigned long rseed = pid_t + time(&t) + rsalt;
-  srand(rseed);
+  srand(fourseed());
   gsl_rng *qrng;
   qrng = gsl_rng_alloc(gsl_rng_taus2);
   gsl_rng_set(qrng, rand());
@@ -87,34 +99,14 @@ int main(int argc, char **argv) {
   float** gamma = calloc(width, sizeof(float*));
   for(int i = 0; i < width; i++) gamma[i] = calloc(width, sizeof(float));
 
+  FILE* Synfile ;
+  Synfile = fopen("syntsynd.txt","w");
+  FILE* bSynfile;
+  bSynfile = fopen("syntsynd.bin","wb");
   uint64_t rowsyn = 0UL;
   uint64_t p2shift = 0;
   uint64_t p1bit = 0;
   uint64_t tbval = 0;
-
-/*
-  FILE* Synfile ;
-  Synfile = fopen("syntsynd.txt","r"); 
-  if (hflag) {
-    fclose(Synfile);
-    FILE* Synfile;
-    Synfile = fopen("syntsynd.txt","w");
-  }
-
-  FILE* bSynfile;
-  bSynfile = fopen("syntsynd.bin","rb"); 
-  if (bflag) {
-    fclose(bSynfile);
-    FILE* bSynfile;
-    bSynfile = fopen("syntsynd.bin","wb");
-  }
-*/
-  FILE* Synfile ;
-  Synfile = fopen("syntsynd.txt","w");
-
-  FILE* bSynfile;
-  bSynfile = fopen("syntsynd.bin","wb");
-
   uint64_t y = 0;
 
   //Loop over blocks
@@ -131,9 +123,6 @@ int main(int argc, char **argv) {
 
       //Generate new uncorrelated distribution
       uint64_t k = gsl_ran_binomial(qrng, p_zero, numdata);
-      //uint64_t* errors;
-      //errors = calloc(k, sizeof(uint64_t));
-      //uint64_t numdata = (width*width+1)/2;
       uint64_t* errors = iidmap(qrng, k, numdata);
       uint64_t xcoord = 0; uint64_t ycoord = 0;
       for(int i = 0; i < k; i++) {
@@ -151,18 +140,18 @@ int main(int argc, char **argv) {
         gval = qarray[x][y];
         if(gval == 0) continue;
           else {
-            if (x > 1)                             gamma[x-2][y] += rho_odd;
-            if (x < (width-2))                     gamma[x+2][y] += rho_odd;
-            if (y > 1)                             gamma[x][y-2] += rho_odd;
-            if (y < (width-2))                     gamma[x][y+2] += rho_odd;
-            if (x > 3)                             gamma[x-4][y]   += rho_even;
-            if (x < (width-4))                     gamma[x+4][y]   += rho_even;
-            if (y > 3)                             gamma[x][y-4]   += rho_even;
-            if (y < (width-4))                     gamma[x][y+4]   += rho_even;
+            if((x < (width-1)) && (y < (width-1))) gamma[x+1][y+1] += rho_odd;
+            if((x < (width-1)) && (y > 1))         gamma[x+1][y-1] += rho_odd;
+            if((x > 1)         && (x < (width-1))) gamma[x-1][y+1] += rho_odd;
+            if((x > 1)         && (y > 1))         gamma[x-1][y-1] += rho_odd;
+            if (x < (width-2))                     gamma[x+2][y+0] += rho_even;
             if((x < (width-2)) && (y < (width-2))) gamma[x+2][y+2] += rho_even;
-            if((x > 1)         && (y > 1))         gamma[x-2][y-2] += rho_even;
-            if((x < (width-2)) && (y > 1))         gamma[x+2][y-2] += rho_even;
-            if((x > 1)         && (y < (width-2))) gamma[x-2][y+2] += rho_even;
+            if                    (y < (width-2))  gamma[x+0][y+2] += rho_even;
+            if((x > 2)         && (y < (width-2))) gamma[x-2][y+2] += rho_even;
+            if (x > 2)                             gamma[x-2][y+0] += rho_even;
+            if((x > 2)         && (y > 2))         gamma[x-2][y-2] += rho_even;
+            if                    (y > 2)          gamma[x+0][y-2] += rho_even;
+            if((x < (width-2)) && (y > 2))         gamma[x+2][y-2] += rho_even;
           }
         }
       }
@@ -197,7 +186,6 @@ int main(int argc, char **argv) {
         printf("\nSyndrome at (%3li,%3li):\n", n+1, t+1);
         for(uint64_t x = 0; x < width; x++) {
           for(uint64_t y2 = 0; y2 < width; y2++) {
-          //for(uint64_t y = (width-1); y >= 0; y--) {
             y = width - y2 - 1;
             p = x + y;
             if (p%2) {
@@ -245,10 +233,8 @@ int main(int argc, char **argv) {
               p2shift += 2;
             }
           }
-          //printf("p2shift = %li \t", p2shift);
           if (p1bit) rowsyn >>= 1;
           else rowsyn <<= 1;
-          //printbits(rowsyn);
           size_t synwrite = fwrite(&rowsyn, sizeof(uint64_t), 1, bSynfile);
         }
       }

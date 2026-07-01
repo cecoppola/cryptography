@@ -1,0 +1,16 @@
+[Unit]
+Description=AMD GPU boot preflight — debug logging, baseline snapshot, SMU stabilisation
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/machinus/ntt/scripts/gpu_preflight.sh
+StandardOutput=journal
+StandardError=journal
+RemainAfterExit=yes
+# Timeout generous: script waits 120s for SMU then captures baseline
+TimeoutStartSec=300
+
+[Install]
+WantedBy=graphical.target

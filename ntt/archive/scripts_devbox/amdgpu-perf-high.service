@@ -1,0 +1,18 @@
+[Unit]
+Description=Pin AMD GPU performance level to high (prevents GfxOff on ROCm compute)
+Documentation=https://www.kernel.org/doc/html/latest/gpu/amdgpu/thermal.html
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+Type=oneshot
+# Wait 120s after graphical target — SMU firmware (v0x41) needs time to stabilise
+# before DisallowGfxOff commands succeed. Setting performance=high also suppresses
+# GfxOff during compute, preventing the 0xFFFFFFFF SMU timeout that hard-crashes
+# the machine (confirmed 2026-06-08, SMU driver/fw version mismatch).
+ExecStartPre=/bin/sleep 120
+ExecStart=/bin/sh -c 'echo high > /sys/class/drm/card1/device/power_dpm_force_performance_level'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target

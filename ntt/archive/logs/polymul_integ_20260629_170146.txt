@@ -1,0 +1,1 @@
+polymul_integ 20260629_170146 : cells=66 skip=3 rejected=15 198/198 ALL PASS

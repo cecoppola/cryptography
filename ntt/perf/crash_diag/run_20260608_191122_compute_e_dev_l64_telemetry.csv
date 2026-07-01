@@ -1,0 +1,7 @@
+# gpu_telemetry started 2026-06-08 23:11:22 UTC pid=8335
+# interval=1s  card=/sys/class/drm/card1/device  pci=/sys/bus/pci/devices/0000:0a:00.0
+timestamp,busy_pct,vram_used_mb,vram_total_mb,temp_edge_c,temp_junc_c,temp_mem_c,sclk_mhz,mclk_mhz,power_w,perf_level,runtime_status,pcie_speed,pcie_width,aer_correctable,aer_nonfatal,aer_fatal,kfd_gpu_id
+2026-06-08 23:11:22,0,767,16368,37,44,36,9,96,9,auto,active,16.0 GT/s PCIe,16,0,0,0,34296
+2026-06-08 23:11:23,94,1170,16368,46,55,40,2452,1000,192,auto,active,16.0 GT/s PCIe,16,0,0,0,34296
+2026-06-08 23:11:24,90,1162,16368,46,57,40,2066,1000,169,auto,active,16.0 GT/s PCIe,16,0,0,0,34296
+# gpu_telemetry stopped 23:11:25

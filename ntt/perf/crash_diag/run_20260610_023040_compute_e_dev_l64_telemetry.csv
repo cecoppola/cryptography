@@ -1,0 +1,14 @@
+# gpu_telemetry started 2026-06-10 06:30:40 UTC pid=8687
+# interval=1s  card=/sys/class/drm/card1/device  pci=/sys/bus/pci/devices/0000:0a:00.0
+timestamp,busy_pct,vram_used_mb,vram_total_mb,temp_edge_c,temp_junc_c,temp_mem_c,sclk_mhz,mclk_mhz,power_w,perf_level,runtime_status,pcie_speed,pcie_width,aer_correctable,aer_nonfatal,aer_fatal,kfd_gpu_id
+2026-06-10 06:30:40,0,325,16368,35,43,36,3,96,8,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:41,97,801,16368,42,54,40,2529,1000,227,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:42,98,801,16368,46,59,42,2527,1000,228,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:43,98,801,16368,47,60,44,2526,1000,228,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:44,98,801,16368,47,60,44,2528,1000,222,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:45,97,801,16368,47,59,44,2471,1000,209,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:46,97,801,16368,50,59,44,2424,1000,219,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:47,97,801,16368,47,60,44,2440,1000,221,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:48,97,801,16368,48,60,44,2512,1000,224,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+2026-06-10 06:30:49,96,801,16368,47,60,46,2408,1000,221,auto,active,16.0 GT/s PCIe,16,0,0,0,40464
+# gpu_telemetry stopped 06:30:50

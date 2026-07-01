@@ -1,0 +1,49 @@
+# Claude Code agent configuration
+.claude/
+
+# Project scripts and tools (local only)
+lib1/gen_plan.py
+
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+
+# Compiled binaries
+bin/
+
+# Root-level markdown (docs are not tracked; edit locally)
+# README.md is excluded from this rule (tracked for GitHub)
+/BENCH_PLAN.md
+/BUILD.md
+/CLAUDE.md
+/PLAN.md
+/REFERENCE.md
+/RULES.md
+/STATUS.md
+/TESTS.md
+/table_style.md
+
+# Benchmark and test output
+benchmarks/*.csv
+benchmarks/*.tsv
+results/
+bench_*.txt
+bench_mont_*.txt
+bench_gpu_*.txt
+*.log
+
+# Generated HIP/ROCm intermediate files
+*.bc
+*.co
+*.hsaco
+
+# Notification log (from notify hook)
+.claude/notifications.log
+
+# Editor and OS artifacts
+.DS_Store
+*.swp
+*.swo
+*~

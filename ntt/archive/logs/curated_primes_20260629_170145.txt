@@ -1,0 +1,1 @@
+curated-prime-verify result=ALL_PASS S60 q=1152921504606584833 red=PASS ari=PASS ntt=PASS | S61 q=2287828610704211969 red=PASS ari=PASS ntt=PASS | red_cases/prime=4000020 ari_cases/prime=6000000 ntt_n=1024

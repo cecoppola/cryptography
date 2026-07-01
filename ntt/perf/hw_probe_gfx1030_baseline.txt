@@ -1,0 +1,66 @@
+[gpu_run] S23: ppfeaturemask=0xffe77fff (bit15 clear) — GFXOFF disabled at init; no SMU read needed.
+[gpu_run] S27: static clock pin active (1: 1300Mhz *).
+[gpu_run] S24: PCIe AER pre-launch — correctable=0 nonfatal=0 fatal=0
+[gpu_run] pre-check ...
+[gpu_run] S20 WARNING: desktop processes hold renderD128:
+    pid=112222 (nautilus)
+    pid=4570 (xdg-desktop-por)
+    pid=4897 (code)
+    pid=4950 (code)
+    pid=4979 (code)
+    pid=5015 (Xwayland)
+    pid=5078 (gsd-xsettings)
+    pid=5114 (mutter-x11-fram)
+  Proceeding because GPU_RUN_ALLOW_DESKTOP=1 (safe with S18 cap + cwsr_enable=1).
+[gpu_run] S30 NOTE: fwupd-refresh.timer is active; for runs > a few minutes
+          consider: sudo systemctl stop fwupd.service  (prevents a mid-run GPU probe).
+[gpu_run] S18: timeout 60s within safe limit 110s (GFX TDR=120000ms).
+[gpu_run] telemetry: pid=119072 → /home/machinus/ntt/perf/crash_diag/run_20260630_165157_hw_probe_dev_telemetry.csv
+[gpu_run] kernel log: pid=119073 → /home/machinus/ntt/perf/crash_diag/run_20260630_165157_hw_probe_dev_kernel.log
+[gpu_run] display yield: 5000us every 1 muls, mid+end-of-dispatch (flip_done guard)
+[gpu_run] launch: bin/hw_probe_dev  (timeout 60s, gentle escalation)
+# gpu_telemetry started 2026-06-30 20:51:57 UTC pid=119072
+# interval=1s  card=/sys/class/drm/card1/device  pci=/sys/bus/pci/devices/0000:0a:00.0
+timestamp,busy_pct,vram_used_mb,vram_total_mb,temp_edge_c,temp_junc_c,temp_mem_c,sclk_mhz,mclk_mhz,power_w,perf_level,runtime_status,pcie_speed,pcie_width,aer_correctable,aer_nonfatal,aer_fatal,kfd_gpu_id
+<0>gpu_run: LAUNCH bin/hw_probe_dev  d=
+=== hw_probe — CRT-NTT hardware diagnostic ===
+hipGetDeviceCount: 1
+Device 0: AMD Radeon RX 6900 XT [gfx1030]
+
+Property table (one column per device):
+  property                                    dev0
+  warpSize                                      32
+  CUs (multiProcessorCount)                     40
+  maxThreadsPerBlock                          1024
+  maxThreadsPerCU                             2048
+  regsPerBlock                               65536
+  sharedMemPerBlock (B)                      65536
+  sharedMemPerCU (B)                         65536
+  totalGlobalMem (B)                   17163091968
+  l2CacheSize (B)                          4194304
+  clockRate (kHz)                          2660000
+  memClockRate (kHz)                       1000000
+  memBusWidth (bits)                           256
+  integrated (APU)                              no
+  managedMemory                                yes
+  concurrentManagedAccess                      yes
+  pageableMemoryAccess                          no
+  directManagedMemAccessFromHost                no
+  LDS bank count                     (not in hipDeviceProp_t; use rocminfo — expect 32)
+
+Peer-access matrix (canAccessPeer / enable; '-' = self):
+        dev0 
+  dev0   -   
+
+Unified-memory micro-tests (device 0):
+  managed alloc + CPU r/w:            PASS
+  managed GPU kernel access:          PASS
+  zero-copy alias (host==device ptr): YES (unified — engine aliases d_out=h_out)
+  zero-copy GPU write -> CPU read:    PASS
+
+Transcribe the table above into DEPLOYMENT_DIAGNOSTIC.md Appendix A.
+=== hw_probe: OK ===
+[gpu_run] logs: telemetry=/home/machinus/ntt/perf/crash_diag/run_20260630_165157_hw_probe_dev_telemetry.csv  kernel=/home/machinus/ntt/perf/crash_diag/run_20260630_165157_hw_probe_dev_kernel.log
+[gpu_run] post-run watch: 600s → /home/machinus/ntt/perf/crash_diag/run_20260630_165157_hw_probe_dev_postwatch.log (delayed-crash evidence)
+[gpu_run] post-check OK (GPU idle). program rc=0
+[gpu_run] S6 cooldown 30s (no back-to-back heavy runs) ...

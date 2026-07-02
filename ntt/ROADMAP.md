@@ -51,7 +51,7 @@
     log_n==24 (NTT_MAX_LOGN=24 to enable); 18-23 use the unchanged 2-factor path.
     Validated in a full 32M-digit compute_e run (3.22 h, OEIS-correct, 2026-06-30).
     Also needed for MI300A (~log_n=28-29 on 128GB needs the recursive split).
-  - Reliability: `make check` 17/17 host suites + ASAN/UBSan + non-vacuity
+  - Reliability: `make check` 21/21 host suites + ASAN/UBSan + non-vacuity
     proof + 90% coverage floor (GPU-free). GPU correctness is the GMP oracle
     (test_gmp_oracle, log_n=20/22/23/24) run via scripts/gpu_run.sh.
 

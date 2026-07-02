@@ -43,7 +43,7 @@ single-prime reference (ML-KEM / ML-DSA / Goldilocks NTTs).
 **Local dev box (6900 XT / gfx1030):**
 ```sh
 make all          # build the ref CPU binaries
-make check        # GPU-free host reliability gate (17 suites)
+make check        # GPU-free host reliability gate (21 suites)
 make all-mi300a   # gfx942 cross-compile proof of every TU (compile-only)
 ```
 
@@ -77,7 +77,7 @@ bin/       build artifacts                                (gitignored)
 |---|---|
 | `make all` | build the ref CPU binaries |
 | `make all-mi300a` | gfx942 cross-compile proof of every TU |
-| `make check` | GPU-free reliability gate — 17 host suites + ASAN/UBSan + fault-injection proof + 90% coverage floor |
+| `make check` | GPU-free reliability gate — 21 host suites + ASAN/UBSan + fault-injection proof + 90% coverage floor |
 | `make coverage-all` | gcov across ref + lib + app (80% per-TU floor) |
 | `make cpu-all` | build + selftest + bench every ref CPU binary |
 | `make gpu-mi300a` · `gpu-stok-mi300a` · `gpu-polymul-mi300a` · `verify-mi300a` | build the ref gfx942 GPU binaries |

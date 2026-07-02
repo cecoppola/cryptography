@@ -12,7 +12,7 @@
   N digits). **The reference:** `ref/` (single-prime NTT; proving ground, NOT shipped).
 - **State: delivery-ready.** All dev-side work is done. log_n=24 validated end-to-end:
   a full `compute_e` to **32,000,000 digits** ran in **3.22 h** on the dev GPU,
-  OEIS-correct (2026-06-30). Every TU compiles `-Wall -Wextra` clean; `make check` 17/17.
+  OEIS-correct (2026-06-30). Every TU compiles `-Wall -Wextra` clean; `make check` 21/21.
 - **What's left: MI300A-target only** — the OpenSHMEM final link, 4-APU runtime + perf,
   enabling GPU scatter/gather, and gfx942 perf confirmation. See §5.
 - **Hardware:** dev = 6900XT (gfx1030, RDNA2) + 5950X; target = MI300A (gfx942, CDNA3,
@@ -22,7 +22,7 @@
 
 ## 1. First moves (confirm the tree is healthy, ~10 min, GPU-free)
 ```
-make check            # 17 host suites + ASAN/UBSan + non-vacuity + 90% coverage; must be 17/17
+make check            # 21 host suites + ASAN/UBSan + non-vacuity + 90% coverage; must be 21/21
 make all-mi300a       # gfx942 cross-compile proof of every TU; must end "every gfx942 TU built clean"
 ```
 Both are CPU-only/compile-only (no GPU execution) and safe anywhere. If either fails,

@@ -148,14 +148,16 @@ Work the phases in order. Check the boxes. Appendix D is the full `file:constant
 - [ ] **WHAT:** input broadcast — `broadcast_input` SDMA `hipMemcpyPeerAsync` APU0→1,2,3 (`main.hip`).
   **GET:** Phase-1 P2P bandwidth; A/B SDMA vs a kernel-driven copy at N≥2^23 (**G7**).
   **USE:** pick SDMA below and kernel-P2P above the measured crossover (~16 MB on the design baseline; confirm).
-- [ ] **WHAT:** peer access for cross-APU Garner. The GPU Garner on device 0 reads the other 3 APUs' residue
-  lanes. Peer access is enabled in `lib/main.hip` (the `crt_ntt` init, `hipDeviceEnablePeerAccess`) — but
-  **NOT in `lib/arith/ntt_mul.hip`** (the arith/`compute_e` engine), which on a 4-APU node maps the 4 primes
-  to devices 0–3 yet never enables peer access. **This is a real deployment gap, not just a tune.**
-  **GET:** the peer-access matrix (Phase 1); run `compute_e` with 4 APUs visible and watch for a Garner page-fault.
-  **USE:** **add `hipDeviceEnablePeerAccess` to `ntt_mul_init_impl`** (mirror the `main.hip` loop) before any 4-APU
-  arith run, OR pin the arith engine to one APU — decide which. Then confirm cross-APU reads work over Infinity
-  Fabric and consider **G8** (shared twiddle on APU 0 + peer access) to save 3/4 of twiddle HBM at N=2^24.
+- [x] **WHAT:** peer access for cross-APU scatter + Garner. The GPU Garner on device 0 reads the other 3
+  APUs' residue lanes (d_a[1..3]); the scatter kernels for primes 1..3 read the device-0 staging buffers
+  d_in_a/d_in_b. Both are cross-device reads. **DONE (2026-07-02):** `ntt_mul_init_impl` now enables all-pairs
+  `hipDeviceEnablePeerAccess` when n_devs>1, mirroring the `main.hip` loop (tolerating
+  `hipErrorPeerAccessAlreadyEnabled` + clearing the sticky error so it can't trip the pipeline's
+  `hipGetLastError()`). No-op on the single-GPU dev box (loop body skipped when n_devs==1); compiles clean for
+  gfx1030 and gfx942. **STILL TO VERIFY ON TARGET:** the peer-access matrix (Phase 1) and a real `compute_e`
+  run with 4 APUs visible (watch for any residual page-fault); then consider **G8** (shared twiddle on APU 0 +
+  peer access) to save 3/4 of twiddle HBM at N=2^24. Alternative (pin arith to one APU) rejected in favour of
+  the 4-APU split.
 - [ ] **WHAT:** gated on-device scatter/gather — `NTT_GPU_SCATTER_GATHER` + `transfer_kernels.hip` (**G10/G11**).
   **GET:** build with the flag + link `transfer_kernels.o` + managed operands; correctness via `test_e2e_oracle`'s
   core-routed trial; then measure.
@@ -244,7 +246,7 @@ zero-copy aliasing. Its output transcribes straight into Appendix A. The collect
 | `BASE_CONVERT_MUL_THRESHOLD=512`, `use_mgd` | lib/arith/base_convert.c | 5 |
 | managed alloc | lib/arith/bigint_hip_alloc.hip | 1, 2, 5 |
 | `GFX1030_LOCAL` zero-copy branch | lib/arith/ntt_mul.hip, lib/main.hip | 2, 5 |
-| `n_devs` (ntt_mul.hip); peer access + `broadcast_input` (main.hip ONLY — arith engine lacks peer enable) | lib/arith/ntt_mul.hip, lib/main.hip | 1, 6 |
+| `n_devs` (ntt_mul.hip); peer access now enabled in BOTH engines (arith ntt_mul_init_impl + main.hip); `broadcast_input` still main.hip only | lib/arith/ntt_mul.hip, lib/main.hip | 1, 6 |
 | `NTT_STREAM_LOWPRIO`, `NTT_DISPLAY_YIELD_US` | lib/arith/ntt_mul.hip | 3 |
 | `SAFE_GPU_SECS=120`, `est_gpu` model | app/compute_e/main.c | 3, 5 |
 | OpenMP Garner 96-thread/NUMA | lib/garner.hip | 1, 6 |

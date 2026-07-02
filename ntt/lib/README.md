@@ -62,7 +62,7 @@
   │ isa_check.hip                │ ISA probe: verifies v_lshl_add_u64 in gfx942 reduce_p1                                   │
   │ arith/bigint.c/h             │ 256+ bit integers: alloc, add, sub, scatter/gather, limb ops                             │
   │ arith/multiply.c/h           │ BigInt multiply: schoolbook for small; NTT-via-ntt_mul for large                         │
-  │ arith/newton.c/h             │ Newton reciprocal: 53-bit float seed -> full-precision iterate                           │
+  │ arith/newton.c/h             │ Newton reciprocal: 128/64-bit integer seed -> lower-bound iterate                        │
   │ arith/base_convert.c/h       │ D&C decimal conversion using cached pow10 + Newton reciprocals                           │
   │ transfer_core.h              │ Per-element scatter/gather core logic; host+device inline (kernels + oracle share it)    │
   │ transfer_kernels.hip         │ GPU scatter/gather/CLA kernels + launchers (host-verified; gated pipeline wire-in done)  │
@@ -113,6 +113,9 @@
   Host-only verification (no GPU; runnable on the CPU dev box):
     make test-transfer-core    # scatter/gather + carry-lookahead cores vs bigint ref (l64+l112)
     make test-e2e-oracle       # full scatter->NTT->CRT->gather pipeline vs GMP (l64+l112)
+    make test-garner           # Garner CRT reconstruction self-consistency + known vectors
+    make test-arith-alias      # in-place (c==a) safety for add/sub/shr/add_u64/sub_u64 (l64+l112)
+    make test-newton-gmp       # Newton reciprocal + division vs GMP, both div regimes (l64+l112)
     make transfer-kernels-isa  # cross-compile transfer_kernels.hip for gfx942 (0 warnings)
 
   Runtime environment (set before srun):

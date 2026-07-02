@@ -1,49 +1,99 @@
-# Claude Code agent configuration
-.claude/
+# =============================================================================
+# .gitignore — NTT / MI300A project
+#
+# Tracked:   source (ref/lib/app), scripts/, Makefiles, .github/, and all
+#            docs (README/CLAUDE/STATUS/ARCHITECTURE + per-lib READMEs).
+# Not tracked: build output, in-place binaries, perf/ measurement data,
+#            test/benchmark output, --save-temps intermediates, archive/
+#            (retired/dev-only material), and .claude/ (target has its own).
+# =============================================================================
 
-# Project scripts and tools (local only)
-lib1/gen_plan.py
+# ── Claude Code — NOT tracked; the MI300A target has its own config ──────────
+/.claude/
 
-# Build artifacts
+# ── Local scratch ────────────────────────────────────────────────────────────
+/archived/
+/archive/
+
+# ── Build artifacts ──────────────────────────────────────────────────────────
 build/
+bin/
 *.o
 *.a
 *.so
 
-# Compiled binaries
-bin/
+# In-place build binaries — lib2/ and lib3/compute_e/ build into their own
+# directories (the root Makefile builds into bin/, which is covered above).
+lib2/crt_ntt
+lib2/test_ntt
+lib2/test_ntt_dev
+lib2/test_reduce
+lib2/test_modops
+lib2/arith/test_arith
+lib2/arith/test_arith_l64
+lib2/arith/test_arith_l112
+lib2/arith/test_arith_fuzz_l64
+lib2/arith/test_arith_fuzz_l112
+lib2/arith/test_arith_gmp_l64
+lib2/arith/test_arith_gmp_l112
+lib3/compute_e/compute_e
+lib3/compute_e/compute_e_dev
+lib3/compute_e/compute_e_host
+lib3/compute_e/compute_e_dev_l64
+lib3/compute_e/compute_e_dev_l112
+lib3/compute_e/test_binary_split
+lib3/compute_e/test_kernel_dev
+lib3/compute_e/test_polymul_sweep
+lib3/compute_e/test_polymul_sweep_l112
 
-# Root-level markdown (docs are not tracked; edit locally)
-# README.md is excluded from this rule (tracked for GitHub)
-/BENCH_PLAN.md
-/BUILD.md
-/CLAUDE.md
-/PLAN.md
-/REFERENCE.md
-/RULES.md
-/STATUS.md
-/TESTS.md
-/table_style.md
+# ── Python bytecode (pretty_md.py / MD generators) ──────────────────────────
+__pycache__/
+*.pyc
 
-# Benchmark and test output
-benchmarks/*.csv
-benchmarks/*.tsv
-results/
-bench_*.txt
-bench_mont_*.txt
-bench_gpu_*.txt
+# ── Performance / measurement data ───────────────────────────────────────────
+# Regenerated on the GPU host; kept local (large). The distilled .md ledgers
+# live here too but are intentionally not pushed — see CLAUDE.md section 8.
+perf/
+
+# ── Test / benchmark output ──────────────────────────────────────────────────
+/results/
 *.log
+bench_*.txt
+bench_gpu_*.txt
+det_*.txt
+curated_primes_*.txt
+mlkem_kat_*.txt
+ntt_rigor_*.txt
+polymul_integ_*.txt
+negacyc_integ_*.txt
+negac_sweep_*.txt
+bsplit_*.txt
 
-# Generated HIP/ROCm intermediate files
+# ── HIP/ROCm --save-temps / clang offload-bundler intermediates ──────────────
 *.bc
 *.co
 *.hsaco
+*.hipi
+*.hipfb
+*-hip-amdgcn-amd-amdhsa-*.s
+*-hip-amdgcn-amd-amdhsa-*.out
+*-host-x86_64-unknown-linux-gnu.s
+isa_check-*.out
+isa_check-*.resolution.txt
 
-# Notification log (from notify hook)
-.claude/notifications.log
+# ── rocprofv3 profiler output ────────────────────────────────────────────────
+.rocprofv3/
 
-# Editor and OS artifacts
+# ── Editor / OS artifacts ────────────────────────────────────────────────────
 .DS_Store
 *.swp
 *.swo
 *~
+
+# Local-only dev-box GPU-safety tooling (restored from archive for dev runs)
+scripts/gpu_*.sh
+
+# Untracked per request 2026-06-30 (kept local, not pushed)
+/mi300a_environment_0509.txt
+/pretty_md.py
+/.github/

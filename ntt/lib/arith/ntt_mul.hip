@@ -409,6 +409,42 @@ extern "C" void ntt_mul_init_impl(int max_log_n)
     HIP_CHECK(hipGetDeviceCount(&g_nms.n_devs));
     if (g_nms.n_devs < 1) g_nms.n_devs = 1;
     if (g_nms.n_devs > 4) g_nms.n_devs = 4;
+
+    /* Multi-device peer access (4-APU MI300A). Two hot cross-device reads make
+     * this mandatory once n_devs>1: (1) the scatter kernels for primes 1..3 run
+     * on devices 1..3 but read the operand-limb staging buffers d_in_a/d_in_b,
+     * which live on device 0; (2) the GPU Garner on device 0 reads the per-prime
+     * residue arrays d_a[1..3] on devices 1..3. Both dereference a peer device's
+     * HBM, so every device must peer-access every other or the kernel page-faults
+     * (DEPLOYMENT_DIAGNOSTIC P6). Mirrors lib/main.hip's crt_ntt init.
+     * On the single-GPU dev box (n_devs==1) the loop body never executes — this
+     * block is a no-op there and that path stays byte-identical.
+     * hipErrorPeerAccessAlreadyEnabled is tolerated (a prior context or a second
+     * init may have enabled it) and the sticky error is cleared, so it can never
+     * trip the HIP_CHECK(hipGetLastError()) in ntt_bigint_mul. */
+    for (int pi = 0; pi < g_nms.n_devs; pi++) {
+        HIP_CHECK(hipSetDevice(pi));
+        for (int pj = 0; pj < g_nms.n_devs; pj++) {
+            if (pi == pj) continue;
+            int can = 0;
+            HIP_CHECK(hipDeviceCanAccessPeer(&can, pi, pj));
+            if (!can) {
+                fprintf(stderr, "ntt_mul_init: WARNING: device %d cannot peer-access "
+                        "device %d — cross-device scatter/Garner will fault.\n", pi, pj);
+                continue;
+            }
+            hipError_t _pe = hipDeviceEnablePeerAccess(pj, 0);
+            if (_pe != hipSuccess && _pe != hipErrorPeerAccessAlreadyEnabled) {
+                fprintf(stderr, "ntt_mul: HIP error %d (%s) enabling peer access "
+                        "%d->%d at %s:%d\n", (int)_pe, hipGetErrorString(_pe),
+                        pi, pj, __FILE__, __LINE__);
+                fflush(stderr);
+                exit(1);
+            }
+            (void)hipGetLastError();   /* clear a benign AlreadyEnabled sticky error */
+        }
+    }
+
     /* h_out: GPU Garner output.
      *   GFX1030_LOCAL: standard host malloc + separate device d_out, D2H copy.
      *   MI300A:        hipHostMalloc gives a host pointer in unified HBM3,
@@ -964,6 +1000,26 @@ extern "C" void ntt_bigint_mul(BigInt *c, const BigInt *a, const BigInt *b)
     g_gpu_dispatch_count++;
     int log_n = g_nms.log_n;
     int N     = 1 << log_n;
+
+    /* Linear-convolution size guard. This engine computes a size-N CYCLIC
+     * convolution (the NTT length is fixed at init to N=2^log_n). The polynomial
+     * product of a (n_a coeffs) and b (n_b coeffs) has n_a+n_b-1 coefficients and
+     * equals the cyclic result WITHOUT wraparound only when n_a+n_b-1 <= N. If a
+     * caller ever presents operands violating this, the top coefficients fold back
+     * onto the low ones (mod x^N - 1) and the product is silently WRONG — the
+     * n_coeffs clamp below only truncates the output, it cannot detect the fold.
+     * compute_e sizes max_log_n with margin so this never fires in-tree, but
+     * ntt_bigint_mul is a public API: abort loudly rather than return garbage. */
+    long need = (long)a->n_limbs + (long)b->n_limbs - 1;
+    if (need > N) {
+        fprintf(stderr,
+            "ntt_bigint_mul: operands exceed the fixed NTT size — product needs "
+            "%ld coeffs but N=%d (log_n=%d). Re-init ntt_mul with a larger "
+            "max_log_n; the size-N cyclic convolution would otherwise wrap "
+            "silently and corrupt the result.\n", need, N, log_n);
+        fflush(stderr);
+        exit(1);
+    }
 
     prof_resolve();   /* normally a no-op: resolved in ntt_mul_init_impl() */
     double _pt = g_prof ? prof_ms() : 0.0;

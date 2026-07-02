@@ -21,7 +21,7 @@
   ├────────────────────────┼────────────────────────────────────────────┤
   │ main.c                 │ driver: split -> 10^D -> divide -> decimal │
   │ binary_split.c         │ binary-splitting recursion for sum 1/k!    │
-  │ mem_pool.c             │ scratch-buffer pool for the recursion      │
+  │ mem_pool.c             │ recycling slab pool for the recursion      │
   │ ntt_stub.c             │ host NTT stub for the CPU-only test build  │
   │ test_binary_split.c    │ binary_split vs independent radix-2^30 ref │
   │ test_ntt_kernel.hip    │ GPU NTT known-answer tests (gfx-gated)     │
@@ -33,8 +33,11 @@
 [1;35m  TESTING[0m
 
   Host (GPU-free, in `make check`):  `make test-binsplit` runs the 26-cell
-  binary_split adversarial test; `make test-host` builds a schoolbook-only
-  compute_e and diffs its output against the digits of e (OEIS A001113).
-  GPU (gfx-gated): test_ntt_kernel and test_polymul_sweep run on hardware
+  binary_split adversarial test; `make test-mempool` unit-tests the slab pool
+  (recycle/best-fit/grow/over-cap/managed + a randomized stress loop, ASan-clean);
+  `make test-host` builds a schoolbook-only compute_e and diffs its output
+  against the digits of e (OEIS A001113).
+  GPU (gfx-gated): test_ntt_kernel, test_polymul_sweep, and test_wrap_guard
+  (fork death-test of ntt_bigint_mul's cyclic-wrap size guard) run on hardware
   via scripts/gpu_run.sh. Build/run on the MI300A requires the modules in
   scripts/setup_mi300a.sh.

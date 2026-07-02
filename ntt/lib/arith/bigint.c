@@ -211,12 +211,16 @@ void bigint_shr(BigInt *c, const BigInt *a, int bits)
 
     int nc = a->n_limbs - limb_shift;
     bigint_resize(c, nc > 0 ? nc : 1);
-    /* No bigint_zero: loop reads higher-index limbs before writing lower ones
-     * (alias-safe when c==a; reads always lead writes in index). */
-
+    /* No bigint_zero: the else-loop reads higher-index limbs before writing
+     * lower ones (alias-safe when c==a; reads always lead writes in index).
+     * The bit_shift==0 branch MUST use memmove, not memcpy: when c==a and
+     * limb_shift>0 the source (a->limbs+limb_shift) overlaps the destination
+     * (c->limbs), which is undefined behaviour for memcpy (caught by ASan's
+     * memcpy-param-overlap). memmove copies down-safely and is identical to
+     * memcpy when the buffers do not alias. */
     if (bit_shift == 0) {
-        memcpy(c->limbs, a->limbs + limb_shift,
-               (size_t)nc * sizeof(limb_t));
+        memmove(c->limbs, a->limbs + limb_shift,
+                (size_t)nc * sizeof(limb_t));
     } else {
         for (int i = 0; i < nc; i++) {
             c->limbs[i] = a->limbs[i + limb_shift] >> bit_shift;

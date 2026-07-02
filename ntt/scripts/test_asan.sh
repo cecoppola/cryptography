@@ -46,8 +46,8 @@ make clean-host >/dev/null 2>&1
 # recipe's own -O2 -Wall -Wextra. Each target rebuilds its own binaries.
 printf '\n\033[1;36m━━━━  ASAN + UBSan sweep — lib arith + reduce  ━━━━\033[0m\n'
 make -C lib clean >/dev/null 2>&1
-for t in test-arith-dual test-arith-fuzz test-arith-gmp test-reduce \
-         test-transfer-core test-e2e-oracle; do
+for t in test-arith-dual test-arith-fuzz test-arith-gmp test-newton-gmp test-reduce \
+         test-arith-alias test-transfer-core test-e2e-oracle; do
     run_suite "lib $t" "$t" -C lib GCC="gcc $SAN"
 done
 make -C lib clean >/dev/null 2>&1
@@ -55,7 +55,7 @@ make -C lib clean >/dev/null 2>&1
 # ── app compute_e host suites ───────────────────────────────────────────────
 printf '\n\033[1;36m━━━━  ASAN + UBSan sweep — app compute_e  ━━━━\033[0m\n'
 make -C app/compute_e clean >/dev/null 2>&1
-for t in test-binsplit test-host; do
+for t in test-binsplit test-mempool test-host; do
     run_suite "app $t" "$t" -C app/compute_e GCC="gcc $SAN" C_CFLAGS="$SAN -O1"
 done
 make -C app/compute_e clean >/dev/null 2>&1

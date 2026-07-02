@@ -182,6 +182,17 @@ test_3factor_roundtrip: test_3factor_roundtrip.o bigint_dev.o multiply_dev.o \
                         ntt_mul_dev.o ntt_kernel_dev.o garner_dev.o
 	$(HIPCC) $(HIP_CFLAGS_DEV) -L$(ROCM_LIB) $^ -lm -o $@
 
+# Death-test for ntt_bigint_mul's cyclic-wrap size guard (fork + exit-code
+# check). GPU test (needs a device for engine init); run via gpu_run.sh, not
+# the host gate. Links the _dev engine objects like test_3factor_roundtrip.
+test_wrap_guard.o: test_wrap_guard.c $(ARITH_DIR)/bigint.h
+	$(GCC) $(C_CFLAGS_DEV) -I$(CRT_DIR) -c $< -o $@
+test_wrap_guard: test_wrap_guard.o bigint_dev.o multiply_dev.o \
+                 ntt_mul_dev.o ntt_kernel_dev.o garner_dev.o
+	$(HIPCC) $(HIP_CFLAGS_DEV) -L$(ROCM_LIB) $^ -lm -o $@
+test-wrap-guard: test_wrap_guard
+	./test_wrap_guard
+
 # ─── Phase F.7 dual-build (mirrors lib/Makefile test-arith-l64/l112) ────────
 # One source tree, two limb widths. LB-dependent units (every bigint.h-
 # including TU: bigint/multiply/newton/base_convert + ntt_mul.hip
@@ -270,7 +281,7 @@ ntt_stub.o: ntt_stub.c $(ARITH_DIR)/bigint.h
 compute_e_host: $(HOST_OBJ)
 	$(GCC) $(HOST_OBJ) -lm -fopenmp -o compute_e_host
 
-.PHONY: test-host test-binsplit
+.PHONY: test-host test-binsplit test-mempool test-wrap-guard
 test-host: compute_e_host
 	bash ../../scripts/test_compute_e.sh
 
@@ -287,6 +298,18 @@ test_binary_split: test_binary_split.c binary_split.c mem_pool.c ntt_stub.c \
 
 test-binsplit: test_binary_split
 	./test_binary_split
+
+# test-mempool: direct unit test for the free-list slab pool (mem_pool.c).
+# Pins get/put contracts, recycling (pointer reuse), best-fit, grow-largest,
+# over-cap and managed fallbacks, plus a randomized stress loop. Links bigint.c
+# for the put fallbacks (bigint_free / bigint_alloc_managed). Pure host C.
+test_mem_pool: test_mem_pool.c mem_pool.c mem_pool.h \
+               $(ARITH_DIR)/bigint.c $(ARITH_DIR)/bigint.h $(CRT_HDRS)
+	$(GCC) $(C_CFLAGS) -I$(CRT_DIR) -o $@ \
+	    test_mem_pool.c mem_pool.c $(ARITH_DIR)/bigint.c
+
+test-mempool: test_mem_pool
+	./test_mem_pool
 
 # F3 (2026-06-24): rigorous per-limb GPU NTT-multiply vs GMP oracle. Was
 # orphaned — no build rule anywhere, so the "missing rigorous oracle" for the
@@ -317,7 +340,7 @@ test_gmp_oracle_dev: test_gmp_oracle_dev.o $(filter-out main_dev.o,$(DEV_OBJ))
 clean:
 	rm -f compute_e compute_e_dev test_kernel_dev test_polymul_sweep \
 	    compute_e_dev_l64 compute_e_dev_l112 test_polymul_sweep_l112 \
-	    compute_e_host test_binary_split test_gmp_oracle \
+	    compute_e_host test_binary_split test_mem_pool test_wrap_guard test_gmp_oracle \
 	    test_exact_dev test_seq_dev test_p1_isolate \
 	    bigint_hip_alloc.o bigint_hip_alloc_dev.o *.o bsplit_*.txt
 

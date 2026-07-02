@@ -3,9 +3,9 @@
  * mem_pool.h — BigInt scratch-buffer pool for binary splitting.
  *
  * Provides a get/put interface so callers avoid repeated malloc/free in the
- * recursion hot path.  The current implementation is a thin pass-through to
- * bigint_alloc/free; replace the internals with a slab allocator if malloc
- * overhead becomes measurable.
+ * recursion hot path.  Implemented as a bounded free-list slab pool (see
+ * mem_pool.c): put recycles a limb buffer, get reuses a best-fit one.
+ * Single-threaded (binary_split recurses on one thread).
  *
  * Usage:
  *   MemPool *pool = mem_pool_create();
@@ -22,8 +22,9 @@ typedef struct MemPool MemPool;
 MemPool *mem_pool_create(void);
 void     mem_pool_destroy(MemPool *pool);
 
-/* Return a BigInt with cap >= min_cap limbs (contents undefined). */
+/* Return a zeroed BigInt with cap >= min_cap limbs, n_limbs=0, managed=0. */
 BigInt   mem_pool_get(MemPool *pool, int min_cap);
 
-/* Return b to the pool; b->limbs may be reused by subsequent mem_pool_get. */
+/* Return b to the pool for reuse by a later mem_pool_get, and detach it
+ * (b->limbs set NULL) so the caller cannot double-free the pooled buffer. */
 void     mem_pool_put(MemPool *pool, BigInt *b);

@@ -69,7 +69,8 @@ ARITH_HIP_OBJ := arith/ntt_mul.o
 
 .PHONY: all dev dev-isa clean check env isa-check arith test-arith test-arith-l112 \
         test-arith-dual test-arith-fuzz test-arith-gmp test-reduce test-modops \
-        test-transfer-core transfer-kernels-isa test-e2e-oracle
+        test-garner test-arith-alias test-newton-gmp test-transfer-core \
+        transfer-kernels-isa test-e2e-oracle
 
 all: crt_ntt test_ntt
 
@@ -156,6 +157,19 @@ arith/test_arith_gmp_l64: $(ARITH_GMP_SRC) $(ARITH_TEST_DEP)
 arith/test_arith_gmp_l112: $(ARITH_GMP_SRC) $(ARITH_TEST_DEP)
 	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=112 -I. $(ARITH_GMP_SRC) -o $@ -lgmp
 
+# Newton reciprocal + division fuzz vs GMP. Exercises BOTH div regimes
+# (bits_N<=2b and the bits_N>2b fresh-reciprocal path) with non-vacuity
+# assertions, plus reciprocal cross-check and edge cases. Schoolbook forced
+# (no NTT). Dual-width; links bigint/newton/multiply (base_convert unused).
+NEWTON_GMP_SRC := arith/test_newton_gmp.c arith/bigint.c arith/multiply.c arith/newton.c
+test-newton-gmp: arith/test_newton_gmp_l64 arith/test_newton_gmp_l112
+	@echo "== NEWTON/GMP LIMB_BITS=64 =="  && ./arith/test_newton_gmp_l64
+	@echo "== NEWTON/GMP LIMB_BITS=112 ==" && ./arith/test_newton_gmp_l112
+arith/test_newton_gmp_l64: $(NEWTON_GMP_SRC) arith/bigint.h arith/newton.h arith/multiply.h
+	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=64 -I. $(NEWTON_GMP_SRC) -o $@ -lgmp
+arith/test_newton_gmp_l112: $(NEWTON_GMP_SRC) arith/bigint.h arith/newton.h arith/multiply.h
+	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=112 -I. $(NEWTON_GMP_SRC) -o $@ -lgmp
+
 # GPU scatter/gather core oracle: host-callable per-element logic from
 # transfer_core.h (the code the transfer_kernels.hip kernels wrap) vs the
 # bigint_scatter[_t] / bigint_gather[_t] reference. Pure C, dual-width, no GPU.
@@ -210,6 +224,16 @@ test-reduce: test_reduce
 test_reduce: test_reduce.c primes.h
 	$(GCC) -O2 -Wall -Wextra -I. test_reduce.c -o test_reduce
 
+# Garner CRT reconstruction correctness (garner.hip host path): known
+# single-word vectors + edge residues + randomized X mod p_i == r_i
+# self-consistency. Fills the previously untested final integer-assembly
+# step. Pure host (garner.hip's HIP kernels are behind #ifdef __HIPCC__);
+# C++ + OpenMP because garner_reconstruct uses the mulmod<> templates.
+test-garner: test_garner
+	./test_garner
+test_garner: test_garner.cpp garner.hip primes.h crt_ntt.h
+	g++ -O2 -Wall -Wextra -fopenmp -I. test_garner.cpp -o test_garner
+
 # Exhaustive addmod/submod/mulmod/montgomery_mul/shoup_mul vs __uint128_t
 # reference (montgomery_mul checked via reference-free REDC invariant).
 # Caught the montgomery_mul 128-bit-sum-overflow bug. Host-only (no GPU).
@@ -224,6 +248,18 @@ arith/test_arith_l64: $(ARITH_TEST_SRC) $(ARITH_TEST_DEP)
 
 arith/test_arith_l112: $(ARITH_TEST_SRC) $(ARITH_TEST_DEP)
 	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=112 -I. $(ARITH_TEST_SRC) -o $@
+
+# In-place (operand-aliasing) safety for add/sub/shr/add_u64/sub_u64 vs a
+# non-aliased reference. Dual-width; links bigint.c only. Under the ASAN sweep
+# also catches overlapping-memcpy UB in the shr limb-aligned aliased path.
+ARITH_ALIAS_SRC := arith/test_arith_alias.c arith/bigint.c
+test-arith-alias: arith/test_arith_alias_l64 arith/test_arith_alias_l112
+	@echo "== ALIAS LIMB_BITS=64 =="  && ./arith/test_arith_alias_l64
+	@echo "== ALIAS LIMB_BITS=112 ==" && ./arith/test_arith_alias_l112
+arith/test_arith_alias_l64: $(ARITH_ALIAS_SRC) arith/bigint.h primes.h crt_ntt.h
+	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=64 -I. $(ARITH_ALIAS_SRC) -o $@
+arith/test_arith_alias_l112: $(ARITH_ALIAS_SRC) arith/bigint.h primes.h crt_ntt.h
+	$(GCC) -O2 -Wall -Wextra -DLIMB_BITS=112 -I. $(ARITH_ALIAS_SRC) -o $@
 
 arith: $(ARITH_C_OBJS) $(ARITH_HIP_OBJ)
 
@@ -305,10 +341,12 @@ isa-check: isa_check.hip primes.h
 	    || echo "[WARN] .s file not found — check --save-temps output names"
 
 clean:
-	rm -f crt_ntt test_ntt test_ntt_dev test_reduce test_modops \
+	rm -f crt_ntt test_ntt test_ntt_dev test_reduce test_modops test_garner \
 	    *.o arith/*.o arith/test_arith arith/test_arith_l64 arith/test_arith_l112 \
 	    arith/test_arith_fuzz_l64 arith/test_arith_fuzz_l112 \
+	    arith/test_arith_alias_l64 arith/test_arith_alias_l112 \
 	    arith/test_arith_gmp_l64 arith/test_arith_gmp_l112 \
+	    arith/test_newton_gmp_l64 arith/test_newton_gmp_l112 \
 	    arith/test_transfer_core_l64 arith/test_transfer_core_l112 \
 	    arith/test_e2e_oracle_l64 arith/test_e2e_oracle_l112 \
 	    isa_check isa_check-*.s isa_check-*.bc isa_check-*.ll \

@@ -1,8 +1,15 @@
 /*
  * newton.c — Newton-Raphson reciprocal for large-integer division.
  *
- * newton_recip_at_scale(x, Q, scale) computes x = floor(2^scale / Q).
+ * newton_recip_at_scale(x, Q, scale) computes x ~= floor(2^scale / Q).
  * newton_reciprocal(x, Q) is the public API: delegates with scale=2*bits(Q).
+ *
+ * The Newton iteration converges from below, so the result r is a LOWER BOUND:
+ * r <= floor(2^scale / Q), reaching equality when it fully converges (the
+ * common large-Q case) and stopping at most a couple short otherwise (e.g.
+ * Q=1 yields floor-1: the correction delta underflows before the last step).
+ * This is intentional and safe — bigint_div_newton's bounded correction loop
+ * absorbs the small slack. Callers needing an exact floor must not assume it.
  *
  * Seed derivation (bits(Q)=b, scale arbitrary):
  *   Q_top = top 64 bits of Q = floor(Q/2^(b-64)); ensures
